@@ -1,0 +1,31 @@
+﻿version: '3.1'
+
+services:
+  
+  localstack:
+    image: localstack/localstack:latest
+    restart: unless-stopped
+    environment:
+      - AWS_DEFAULT_REGION=us-east-1
+      - EDGE_PORT=4566
+      - SERVICES=lambda,s3
+    ports:
+      - '4566-4583:4566-4583'
+    volumes:
+      - "${TEMPDIR:-/tmp/localstack}:/tmp/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+  postgres:
+    image: postgres
+    restart: on-failure
+    environment:
+      POSTGRES_DB: anubis
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - 5442:5432
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
